@@ -1,0 +1,494 @@
+---
+title: "Proyecto Medio Semestre"
+author: "Jonathan Guaygua, Pablo Encalada, Ignacio Zurita"
+date: "`r Sys.Date()`"
+output: 
+  prettydoc::html_pretty:
+    theme: cayman
+---
+
+# Base de datos
+
+Creacion base de datos e importacion de librerias
+
+
+
+```{r}
+data_ufc <- read.csv('ufc_fighters.csv')
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(formattable)
+library(knitr)
+
+str(data_ufc)
+
+formattable(head(data_ufc), 
+            align =c("l","l","c","c","c")
+            )
+```
+
+# Limpieza
+Limpieza de variables para la base de datos
+
+```{r}
+data_ufc <- data_ufc %>%
+  mutate(Weight = gsub("lbs.", "", Weight))
+
+data_ufc <- data_ufc %>%
+  mutate(Height = gsub("' ", "." , Height))
+
+data_ufc <- data_ufc %>%
+  mutate(Height = gsub("\"", "" , Height))
+
+data_ufc <- data_ufc %>%
+  mutate(Reach = gsub("\"", "" , Reach))
+
+data_ufc$Reach = as.numeric(data_ufc$Reach)
+
+#Pulgadas a pies
+
+data_ufc <- data_ufc %>% mutate(Reach = Reach/100)
+
+data_ufc$Weight = as.numeric(data_ufc$Weight)
+ 
+data_ufc$Height = as.numeric(data_ufc$Height)
+
+
+data_ufc$reach <- NA
+# Asignar los valores de victorias sin los NA en la Height
+data_ufc$reach[!is.na(data_ufc$Height)] <- data_ufc$Reach[!is.na(data_ufc$Height)]
+
+alcance <- na.omit(data_ufc$reach)
+
+data_ufc$height <- ifelse(!is.na(data_ufc$Reach), data_ufc$Height, NA)
+
+altura1 <- na.omit(data_ufc$height)
+
+
+data_ufc$ganadas <- NA
+# Asignar los valores de victorias sin los NA en la Weight
+data_ufc$ganadas[!is.na(data_ufc$Weight)] <- data_ufc$Wins[!is.na(data_ufc$Weight)]
+
+victorias <- na.omit(data_ufc$ganadas)
+
+str(data_ufc)
+formattable(head(data_ufc), 
+            align =c("l","l","c","c","c")
+            )
+```
+
+```{r}
+summary(data_ufc)
+```
+# Maximos y Minimos
+Calculamos los maximos y minimos para algunas variables.
+## Maximo peso
+```{r}
+peso <- na.omit(data_ufc$Weight)
+weight_max <- max(peso)
+temp_df <- data_ufc %>%
+  filter(., as.logical(Weight == as.numeric(weight_max))) %>%
+  select(First.Name, Last.Name, Nickname, Weight, Height)
+
+formattable(temp_df, 
+            align =c("l","l","c","c","c"),
+            list(`Weight` = formatter(
+              "span", style = ~ style(color = "#71CA97",font.weight = "bold") ))
+)
+```
+## Minimo peso
+```{r}
+weight_min <- min(peso)
+temp_df <- data_ufc %>%
+  filter(., as.logical(Weight == as.numeric(weight_min))) %>%
+  select(First.Name, Last.Name, Nickname, Weight, Height)
+
+formattable(temp_df, 
+            align =c("l","l","c","c","c"),
+            list(`Weight` = formatter(
+              "span", style = ~ style(color = "#71CA97",font.weight = "bold") ))
+)
+```
+## Maximo altura
+```{r}
+altura <- na.omit(data_ufc$Height)
+height_max <- max(altura)
+temp_df <- data_ufc %>%
+  filter(., as.logical(Height == as.numeric(height_max))) %>%
+  select(First.Name, Last.Name, Nickname, Height, Weight)
+
+
+formattable(temp_df, 
+            align =c("l","l","c","c","c"),
+            list(`Height` = formatter(
+              "span", style = ~ style(color = "#71CA97",font.weight = "bold") ))
+)
+```
+## Minima altura
+```{r}
+height_min <- min(altura)
+temp_df <- data_ufc %>%
+  filter(., as.logical(Height == as.numeric(height_min))) %>%
+  select(First.Name, Last.Name, Nickname, Height, Weight)
+
+formattable(temp_df, 
+            align =c("l","l","c","c","c"),
+            list(`Height` = formatter(
+              "span", style = ~ style(color = "#71CA97",font.weight = "bold") ))
+)
+```
+## Maximo alcance
+```{r}
+alcance1 <- na.omit(data_ufc$Reach)
+reach_max <- max(alcance1)
+temp_df <- data_ufc %>%
+  filter(., as.logical(Reach == as.numeric(reach_max))) %>%
+  select(First.Name, Last.Name, Nickname, Reach ,Height, Weight)
+
+formattable(temp_df, 
+            align =c("l","l","c","c","c"),
+            list(`Reach` = formatter(
+              "span", style = ~ style(color = "#71CA97",font.weight = "bold") ))
+)
+```
+
+## Minimo alcance
+```{r}
+reach_min <- min(alcance1)
+temp_df <- data_ufc %>%
+  filter(., as.logical(Reach == as.numeric(reach_min))) %>%
+  select(First.Name, Last.Name, Nickname, Reach ,Height, Wins)
+
+formattable(temp_df, 
+            align =c("l","l","c","c","c", "c"),
+            list(`Reach` = formatter(
+              "span", style = ~ style(color = "#71CA97",font.weight = "bold") ))
+)
+
+```
+## Maximas victorias
+```{r}
+wins_max <- max(victorias)
+temp_df <- data_ufc %>%
+  filter(., as.logical(Wins == as.numeric(wins_max))) %>%
+  select(First.Name, Last.Name, Nickname, Reach ,Height, Wins)
+
+formattable(temp_df, 
+            align =c("l","l","c","c","c", "c"),
+            list(`Wins` = formatter(
+              "span", style = ~ style(color = "#71CA97",font.weight = "bold") ))
+)
+
+```
+## Minima victorias
+```{r}
+wins_min <- min(victorias)
+temp_df <- data_ufc %>%
+  filter(., as.logical(Wins == as.numeric(wins_min))) %>%
+  select(First.Name, Last.Name, Nickname, Reach ,Height, Wins)
+item_count <- nrow(temp_df)
+temp_df <- head(temp_df, 10)
+
+formattable(temp_df, 
+            align =c("l","l","c","c","c", "c"),
+            list(`Wins` = formatter(
+              "span", style = ~ style(color = "#71CA97",font.weight = "bold") ))
+)
+print(item_count)
+```
+```{r}
+
+
+min_max_summary <- data.frame(
+  Variable = c("Height", "Reach", "Wins"),
+  MinValue = c(height_min, reach_min, wins_min),
+  MaxValue = c(height_max, reach_max, wins_max)
+)
+
+formattable(min_max_summary, 
+            align =c("l","c","c","c"), 
+            list(`Variable` = formatter(
+              "span", style = ~ style(color = "grey",font.weight = "bold")),
+              `MinValue`= color_tile("#71CA97", "#74ed9d"),
+              `MaxValue`= color_tile("#71CA97", "#74ed9d")
+))
+```
+
+# Promedios
+Se calcularon los promedios para algunas variables
+## Peso promedio
+
+```{r}
+peso_ufc <- mean(data_ufc$Weight, na.rm = TRUE)
+print(peso_ufc)
+```
+
+## Altura promedio
+
+```{r}
+altura_ufc <- mean(data_ufc$Height, na.rm = TRUE)
+print(altura_ufc)
+
+
+temp_df <- data.frame(
+  Variable = c("Weight", "Height"),
+  Promedio = c(peso_ufc, altura_ufc)
+)
+
+formattable(temp_df, 
+            align =c("l","c","c","c"), 
+            list(`Variable` = formatter(
+              "span", style = ~ style(color = "grey",font.weight = "bold")),
+              `Promedio`= color_tile("#71CA97", "#74ed9d")
+))
+```
+
+# Tabla frecuencia altura
+
+```{r}
+
+df_height <- as.data.frame(table(data_ufc$Height))
+colnames(df_height) <- c("Height", "Frequency")
+
+ggplot(data = df_height, aes(x = Height, y = Frequency)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(
+    title = "Frequency of Heights",
+    x = "Height",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+```
+
+Podemos concluir que las alturas que mas se repiten son 5 y 6 pies.
+
+# Relacion entre Height y Reach
+
+## Diagrama de dispercion
+
+```{r}
+
+ggplot(data = data_ufc, aes(x = Height, y = Reach)) +
+  geom_point(color = "steelblue", size = 3) +
+  labs(
+    title = "Scatter Plot of Height vs. Reach",
+    x = "Height",
+    y = "Reach"
+  ) +
+  theme_minimal()
+```
+
+## Correlacion Height y Reach
+
+```{r}
+cor_h_r <- cor(altura1, alcance)
+print(cor_h_r)
+```
+
+## Regrecion lineal Height y Reach
+
+```{r}
+h_r_regrecion_lineal <- lm(alcance ~ altura1, data_ufc = data_ufc)
+summary(h_r_regrecion_lineal)
+```
+
+# Relacion entre Weight y Wins
+
+## Diagrama de dispercion
+
+```{r}
+
+max_peso <- max(peso)
+
+# Create the scatter plot with custom styling
+ggplot(data = data_ufc, aes(x = Weight, y = Wins)) +
+  geom_point(color = "steelblue", size = 3) +  # Customize point color and size
+  theme_minimal() +  # Use a minimal theme
+  labs(
+    title = "Wins vs. Weight in UFC",
+    x = "Weight (lbs)",
+    y = "Number of Wins"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center title, adjust size and style
+    axis.title = element_text(size = 1),  # Customize axis label size
+    axis.text = element_text(size = 10),   # Customize axis tick label size
+    panel.grid.major = element_blank(),    # Remove major gridlines
+    panel.grid.minor = element_blank(),    # Remove minor gridlines
+    panel.border = element_blank(),        # Remove plot border
+    legend.position = "none"               # Remove legend
+  ) +
+  annotate("text", x = max(data_ufc$Weight, na.rm = TRUE), y = max(data_ufc$Wins), 
+           label = paste("Max Weight:", round(max(data_ufc$Weight, na.rm = TRUE), 2)),
+           vjust = 1, hjust = 1)  # Add annotation for maximum weight
+
+
+
+
+
+
+```
+
+## Correlacion Weight y Wins
+
+```{r}
+
+cor_w_w <- cor(peso , victorias)
+print(cor_w_w)
+```
+
+## Regrecion lineal Weight y Wins
+
+```{r}
+w_w_regrecion_lineal <- lm(victorias ~ peso, data_ufc = data_ufc)
+summary(w_w_regrecion_lineal)
+```
+
+# Relacion entre Reach y Wins
+
+## Correlacion entre Reach y Wins
+
+```{r}
+# Calcular la correlación entre Reach y Wins
+correlation <- cor(data_ufc$Reach, data_ufc$Wins, use="complete.obs")
+
+# Mostrar el coeficiente de correlación
+cat("Coeficiente de correlación entre Reach y Wins:", correlation, "\n")
+```
+
+## Numero de victorias promedio por cada Reach
+```{r}
+
+avg_wins_by_reach <- aggregate(data_ufc$Wins, by = list(data_ufc$Reach), FUN = mean)
+
+colnames(avg_wins_by_reach) <- c("ReachGroup", "PromedioWins")
+
+ggplot(data = avg_wins_by_reach, aes(x = ReachGroup, y = PromedioWins)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Average Number of Wins per Reach Group", x = "Reach", y = "Average Wins") + geom_text(aes(x = min(ReachGroup), y = max(PromedioWins), 
+                   label = paste("Correlation:", round(correlation, 2)), vjust = 2), hjust = 0)
+
+```
+## Numero de victorias promedio por cada Reach en intervalos
+```{r}
+
+# Crear grupos de Reach personalizados con rangos más amplios
+data_ufc$Reach_Group <- cut(data_ufc$Reach, 
+                            breaks = c(0.5, 0.55, 0.6, 0.65, 0.7, max(data_ufc$Reach, na.rm = TRUE)), 
+                            labels = c("5-5.5", "5.5-6", "6-6.5", "6.5-7", "7+"),
+                            include.lowest = TRUE)
+
+# Calculamos el número de victorias promedio para cada grupo
+avg_wins_by_reach <- aggregate(data_ufc$Wins, by = list(data_ufc$Reach_Group), FUN = mean)
+
+colnames(avg_wins_by_reach) <- c("Reach_Group", "PromedioWins")
+
+colors <- c("#d61347", "#404adb", "#39a82a", "purple", "orange")
+
+
+# Create a data frame with the average wins and reach group
+df <- data.frame(Reach_Group = avg_wins_by_reach$Reach_Group, PromedioWins = avg_wins_by_reach$PromedioWins)
+
+# Create the barplot using ggplot2
+ggplot(data = df, aes(x = Reach_Group, y = PromedioWins, fill = Reach_Group)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  scale_fill_manual(values = colors) +
+  labs(
+    title = "Average Number of Wins per Reach Group",
+    x = "Reach Group",
+    y = "Average Wins"
+  ) + geom_text(aes(x = 0, y = max(PromedioWins), 
+                   label = paste("Correlation:", round(correlation, 2)), vjust = 2), hjust = -1)
+
+```
+
+
+
+
+# Relacion entre Stance y Wins
+
+## Calculo de numero de peleadores por Stance
+
+```{r}
+# Realizar un análisis de tablas de contingencia entre Stance y Wins
+table_contingency <- table(data_ufc$Stance, data_ufc$Wins)
+
+# Realizar un test de chi-cuadrado para determinar si hay asociación
+chi_squared_test <- chisq.test(table_contingency)
+
+# Mostrar los resultados del test
+print(chi_squared_test)
+
+p_value <- chi_squared_test$p.value
+
+
+#Calculamos cuantos peleadores usan cada stance
+stance_counts <- table(data_ufc$Stance)
+
+stance_counts_df <- data.frame(Stance = names(stance_counts), Count = as.vector(stance_counts))
+
+print(stance_counts_df)
+
+#Grafica de pastel
+ggplot(stance_counts_df, aes(x = 1, y = Count, fill = Stance, label = Count)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  geom_text(position = position_stack(vjust = 0.5)) +
+  labs(title = "Number of Fighters by Stance") +
+  theme_void() +
+  theme(legend.position = "right") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+## Calculo de promedio de Wins por Stance
+
+```{r}
+data_ufc_filtered <- data_ufc %>% #Filtramos datos vacios
+  filter(Stance != "") 
+#Calculamos la media para cada grupo
+avg_wins_by_stance <- aggregate(data_ufc_filtered$Wins, by = list(data_ufc_filtered$Stance), FUN = mean)
+colnames(avg_wins_by_stance) <- c("Stance", "PromedioWins")
+
+
+colors <- c("#e0cd69", "#4fd945", "#7396d1", "#404adb", "pink")
+
+
+ggplot(data = avg_wins_by_stance, aes(x = Stance, y = PromedioWins, fill = Stance)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  labs(
+    title = "Number of Wins by Stance",
+    x = "Stance",
+    y = "Average Number of Wins"
+  ) +
+  scale_fill_manual(values = colors)  + geom_text(aes(x = 0, y = max(PromedioWins), 
+                   label = paste("P value:", p_value), vjust = 2), hjust = -0.6)
+
+
+
+```
+## Pruebas de ANOVA
+```{r}
+# Realizar un análisis de varianza (ANOVA)
+anova_result <- aov(Wins ~ Stance, data = data_ufc)
+
+# Realizar una prueba de Tukey para comparaciones múltiples
+tukey_result <- TukeyHSD(anova_result)
+
+# Mostrar los resultados de las comparaciones múltiples
+print(tukey_result)
+
+```
+
+```{r}
+# Realizar un análisis de varianza (ANOVA)
+anova_result <- aov(Wins ~ Stance, data = data_ufc)
+
+# Resumen del ANOVA
+summary(anova_result)
+```
+
+
+
+
